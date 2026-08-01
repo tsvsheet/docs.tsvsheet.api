@@ -73,3 +73,22 @@ Computed responses use the tsvsheet vendor media types, which are exactly what t
 ```
 
 A server without the compute plane never serves formulas where computed values were requested — a values `Accept` on a document-plane-only deployment is `406 Not Acceptable`, so an importer can never mistake source text for data.
+
+## Editing from Go, local or remote
+
+The same interface serves both: `document.Port` states the whole document plane — read a document, apply an edits batch, replace or create it, delete it — and two implementations satisfy it. `store` edits files in place with no server anywhere, and `client` speaks to a `tsvsheet-api` over HTTP. A program that can edit a local sheet can edit a remote one by swapping which it holds.
+
+```go
+// Embedded: no listener, no HTTP, just files under a confined root.
+port, err := store.Open(store.RootDir("./sheets"), tsvsheet.DefaultLimits())
+
+// Remote: the same operations against a running server.
+port := client.New("https://sheets.example", nil)
+
+snap, err := port.Get(ctx, "budget.tsvt")
+applied, err := port.Apply(ctx, "budget.tsvt", batch, snap.Rev)
+```
+
+Every mutation carries the revision it expects, so a second writer is refused rather than silently overwriting the first — whichever implementation is in hand. Refusals are the same errors either way: `document.ErrMissing`, `ErrPrecondition`, `ErrExists`, `ErrSyntax`, and the engine's own for a refused batch. A path that is not a clean relative name inside the namespace reads as missing, so whether a refused name exists is never disclosed.
+
+That interchangeability is not a promise, it is a test: the `conformance` package is one table of behaviours run against every implementation, and a new port is expected to run it rather than be trusted.
