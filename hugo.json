@@ -1,6 +1,6 @@
 {
-  "baseURL": "https://example.org/",
-  "title": "Project Documentation",
+  "baseURL": "https://tsvsheet.github.io/docs.tsvsheet.api/",
+  "title": "tsvsheet.api",
   "publishDir": "_site",
   "enableRobotsTXT": true,
   "markup": {
@@ -12,6 +12,6 @@
     }
   },
   "params": {
-    "description": "Public documentation for the project."
+    "description": "The sheet API server: the tsvsheet edit language over HTTP."
   }
 }
